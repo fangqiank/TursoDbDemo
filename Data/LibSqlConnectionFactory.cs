@@ -24,8 +24,9 @@ public interface ILibSqlConnectionFactory
 /// 云端模式（有 AuthToken）→ <c>Data Source=libsql://...;Auth Token=...</c>。
 /// <para>Nelknet 本地文件模式下，每次 <c>Open()</c> 都会打开独立文件句柄，多句柄交错访问同一文件会触发 SQLite 的 <c>database is locked</c>，故复用单连接。</para>
 /// <para>单连接非线程安全，多请求并发需通过 <see cref="SerializationGate"/> 序列化访问。</para>
+/// <para>实现 <see cref="IDisposable"/>：随 Singleton 生命周期，应用停止时由 DI 容器调用 <see cref="Dispose"/> 优雅关闭共享连接。</para>
 /// </remarks>
-public class LibSqlConnectionFactory(TursoOptions options) : ILibSqlConnectionFactory
+public class LibSqlConnectionFactory(TursoOptions options) : ILibSqlConnectionFactory, IDisposable
 {
     /// <summary>全局序列化信号量，确保单连接在多消费者间串行访问。</summary>
     private static SemaphoreSlim SerializationGate { get; } = new(1, 1);
@@ -70,4 +71,7 @@ public class LibSqlConnectionFactory(TursoOptions options) : ILibSqlConnectionFa
             _openGate.Release();
         }
     }
+
+    /// <summary>应用停止时由 DI 容器调用（Singleton 生命周期），优雅关闭复用的共享连接。</summary>
+    public void Dispose() => _connection.Dispose();
 }
