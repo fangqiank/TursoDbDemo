@@ -21,9 +21,6 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
 {
     private const string SelectColumns = "id, name, description, price_cents, stock, created_at, updated_at";
 
-    /// <summary>序列化对单例连接的访问。</summary>
-    
-
     /// <inheritdoc />
     public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken = default)
     {

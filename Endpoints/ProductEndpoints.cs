@@ -96,7 +96,7 @@ public static class ProductEndpoints
             .SelectMany(r => r.MemberNames.DefaultIfEmpty(string.Empty)
                 .Select(member => (Member: member, Error: r.ErrorMessage ?? "无效")))
             .GroupBy(x => x.Member)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Error).Distinct().ToArray());
+            .ToDictionary(g => string.IsNullOrEmpty(g.Key) ? "General" : g.Key, g => g.Select(x => x.Error).Distinct().ToArray());
         return true;
     }
 }

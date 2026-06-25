@@ -13,7 +13,7 @@ public class CreateProductDto
     public string? Description { get; set; }
 
     [Required(ErrorMessage = "价格不能为空")]
-    [Range(0, double.MaxValue, ErrorMessage = "价格必须大于等于 0")]
+    [Range(0, 999_999_999_999.99, ErrorMessage = "价格必须大于等于 0")]
     public decimal Price { get; set; }
 
     [Range(0, int.MaxValue, ErrorMessage = "库存必须大于等于 0")]
@@ -31,7 +31,7 @@ public class UpdateProductDto
     public string? Description { get; set; }
 
     [Required(ErrorMessage = "价格不能为空")]
-    [Range(0, double.MaxValue, ErrorMessage = "价格必须大于等于 0")]
+    [Range(0, 999_999_999_999.99, ErrorMessage = "价格必须大于等于 0")]
     public decimal Price { get; set; }
 
     [Range(0, int.MaxValue, ErrorMessage = "库存必须大于等于 0")]

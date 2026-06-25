@@ -12,7 +12,7 @@ public class Product
 
     public string? Description { get; set; }
 
-    /// <summary>价格，对应 libSQL REAL 列。</summary>
+    /// <summary>价格（元），由数据库 price_cents 整数分 / 100 换算。</summary>
     public decimal Price { get; set; }
 
     public int Stock { get; set; }

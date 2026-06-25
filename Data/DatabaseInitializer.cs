@@ -41,24 +41,30 @@ public class DatabaseInitializer(ILibSqlConnectionFactory connectionFactory, ILo
             {
                 logger.LogInformation("检测到旧版 schema（price 列），正在迁移至 price_cents…");
 
+                await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
                 await using (var addCol = connection.CreateCommand())
                 {
+                    addCol.Transaction = transaction;
                     addCol.CommandText = "ALTER TABLE products ADD COLUMN price_cents INTEGER NOT NULL DEFAULT 0;";
                     await addCol.ExecuteNonQueryAsync(cancellationToken);
                 }
 
                 await using (var updateCmd = connection.CreateCommand())
                 {
+                    updateCmd.Transaction = transaction;
                     updateCmd.CommandText = "UPDATE products SET price_cents = CAST(ROUND(price * 100) AS INTEGER);";
                     await updateCmd.ExecuteNonQueryAsync(cancellationToken);
                 }
 
                 await using (var dropCol = connection.CreateCommand())
                 {
+                    dropCol.Transaction = transaction;
                     dropCol.CommandText = "ALTER TABLE products DROP COLUMN price;";
                     await dropCol.ExecuteNonQueryAsync(cancellationToken);
                 }
 
+                await transaction.CommitAsync(cancellationToken);
                 logger.LogInformation("schema 迁移完成");
             }
         }
