@@ -82,9 +82,7 @@
   <text x="94" y="530" font-size="11" fill="#888">不使用 Dapper（Nelknet 要求参数名带 @ 前缀，与 Dapper 去前缀行为不兼容）</text>
   <text x="966" y="512" font-size="11" fill="#38bdf8" text-anchor="end">SemaphoreSlim 序列化 · 事务 + 跟随 SELECT 释放写锁</text>
 
-  <!-- arrow 4 -->
-  <line x1="530" y1="546" x2="550" y2="600" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
-  <text x="560" y="578" font-size="11" fill="#4ade80">uses · ADO.NET</text>
+  <!-- arrow 4 relocated to end of file (must render above the Layer 5 band) -->
 
   <!-- ============ LAYER 5 : DATA ACCESS & STORE ============ -->
   <rect x="40" y="572" width="980" height="190" rx="6" fill="#141414"/>
@@ -136,6 +134,10 @@
 
   <!-- data flow (green): factory -> db -->
   <line x1="700" y1="700" x2="718" y2="700" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- arrow 4 (Layer 4 Service → Layer 5 Factory): drawn LAST so the Layer 5 band cannot cover it -->
+  <line x1="530" y1="540" x2="550" y2="602" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="558" y="568" font-size="11" fill="#4ade80">uses · ADO.NET</text>
 
   <!-- footer note -->
   <text x="40" y="786" font-size="10.5" fill="#666">时间戳 ISO-8601 文本存储 · 主键 INTEGER PRIMARY KEY AUTOINCREMENT (long) · 写操作事务 + 跟随 SELECT (last_insert_rowid / changes) 释放写锁</text>
