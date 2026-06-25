@@ -31,8 +31,8 @@ window.METADATA = {
 
   // 新建/编辑表单字段
   form: [
-    { name: 'name',        label: '名称 Name',        type: 'text',     required: true, max: 100 },
-    { name: 'description', label: '描述 Description', type: 'textarea',                 max: 500 },
+    { name: 'name',        label: '名称 Name',        type: 'text',     required: true, max: 200 },
+    { name: 'description', label: '描述 Description', type: 'textarea',                 max: 2000 },
     { name: 'price',       label: '价格 Price',       type: 'number',   required: true, step: 0.01, min: 0 },
     { name: 'stock',       label: '库存 Stock',       type: 'number',   min: 0, default: 0 },
   ],

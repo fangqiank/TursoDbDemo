@@ -103,14 +103,16 @@
 
   /* ---------- 表单 ---------- */
   function fieldHtml(f, value) {
-    const v = value !== undefined ? escapeAttr(String(value ?? '')) : escapeAttr(String(f.default ?? ''));
+    const raw = value !== undefined ? String(value ?? '') : String(f.default ?? '');
+    const attrV = escapeAttr(raw);   // 属性值语境（value="..."）只需转义 "
+    const htmlV = escapeHtml(raw);   // 元素内容语境（<textarea>…</textarea>）需转义 &<>"'，防存储型 XSS
     const req = f.required ? ' <span class="tui-req">*</span>' : '';
     const err = `<div class="tui-field-error" data-err="${f.name}"></div>`;
     if (f.type === 'textarea') {
-      return `<div class="tui-field"><label>${f.label}${req}</label><textarea class="tui-textarea" name="${f.name}" maxlength="${f.max ?? 500}">${v}</textarea>${err}</div>`;
+      return `<div class="tui-field"><label>${f.label}${req}</label><textarea class="tui-textarea" name="${f.name}" maxlength="${f.max ?? 500}">${htmlV}</textarea>${err}</div>`;
     }
     const type = f.type === 'number' ? 'number' : 'text';
-    return `<div class="tui-field"><label>${f.label}${req}</label><input class="tui-input" type="${type}" name="${f.name}" value="${v}" ${f.step ? `step="${f.step}"` : ''} ${f.min !== undefined ? `min="${f.min}"` : ''} ${f.max ? `maxlength="${f.max}"` : ''}>${err}</div>`;
+    return `<div class="tui-field"><label>${f.label}${req}</label><input class="tui-input" type="${type}" name="${f.name}" value="${attrV}" ${f.step ? `step="${f.step}"` : ''} ${f.min !== undefined ? `min="${f.min}"` : ''} ${f.max ? `maxlength="${f.max}"` : ''}>${err}</div>`;
   }
   function readForm(formEl) {
     const data = {}, errors = {};
