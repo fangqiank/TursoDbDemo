@@ -1,0 +1,34 @@
+@TursoDbDemo_HostAddress = http://localhost:5236
+
+### 获取全部商品
+GET {{TursoDbDemo_HostAddress}}/api/products
+Accept: application/json
+
+### 获取单个商品
+GET {{TursoDbDemo_HostAddress}}/api/products/1
+Accept: application/json
+
+### 创建商品
+POST {{TursoDbDemo_HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "name": "显示器",
+  "description": "27 寸 4K",
+  "price": 1999,
+  "stock": 30
+}
+
+### 更新商品
+PUT {{TursoDbDemo_HostAddress}}/api/products/1
+Content-Type: application/json
+
+{
+  "name": "显示器（升级版）",
+  "description": "32 寸 4K",
+  "price": 2599,
+  "stock": 20
+}
+
+### 删除商品
+DELETE {{TursoDbDemo_HostAddress}}/api/products/1

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 800" font-family="ui-monospace,'Cascadia Code',Consolas,'SF Mono',Menlo,monospace">
+  <defs>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4ade80"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#fbbf24"/>
+    </marker>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <!-- background -->
+  <rect width="1060" height="800" fill="#0d0d0d"/>
+
+  <!-- title -->
+  <text x="40" y="36" font-size="20" font-weight="700" fill="#ececec">TursoDbDemo — Architecture</text>
+  <text x="40" y="58" font-size="12" fill="#888">.NET 10 Minimal API · libSQL / Turso · 纯 ADO.NET · TUI Frontend</text>
+
+  <!-- legend -->
+  <g font-size="11" fill="#9a9a9a">
+    <line x1="660" y1="33" x2="690" y2="33" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+    <text x="696" y="37">运行时数据流 Runtime</text>
+    <line x1="660" y1="51" x2="690" y2="51" stroke="#fbbf24" stroke-width="2" marker-end="url(#arrowAmber)"/>
+    <text x="696" y="55">配置注入 Config</text>
+    <line x1="860" y1="33" x2="890" y2="33" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowCyan)"/>
+    <text x="896" y="37">启动初始化 Startup</text>
+  </g>
+
+  <!-- ============ LAYER 1 : CLIENT ============ -->
+  <rect x="40" y="78" width="980" height="104" rx="6" fill="#141414"/>
+  <text x="52" y="98" font-size="11" font-weight="700" fill="#6b6b6b" letter-spacing="1.5">01 · CLIENT  客户端层</text>
+  <rect x="80" y="110" width="900" height="62" rx="5" fill="#1c1c1c" stroke="#3a3a3a"/>
+  <text x="94" y="132" font-size="14" font-weight="700" fill="#ececec">Browser 浏览器</text>
+  <text x="94" y="152" font-size="12" fill="#b0b0b0">wwwroot/  →  index.html · css/tui.css · js/app.js · js/metadata.js     （AgomTUI 风格 TUI Dashboard）</text>
+  <text x="966" y="152" font-size="11" fill="#4ade80" text-anchor="end">fetch('/api/products') · same-origin 同源</text>
+
+  <!-- arrow 1 -->
+  <line x1="530" y1="172" x2="530" y2="196" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- ============ LAYER 2 : API HOST ============ -->
+  <rect x="40" y="198" width="980" height="118" rx="6" fill="#141414"/>
+  <text x="52" y="218" font-size="11" font-weight="700" fill="#6b6b6b" letter-spacing="1.5">02 · API HOST  接口宿主</text>
+  <rect x="80" y="230" width="900" height="76" rx="5" fill="#1c1c1c" stroke="#3a3a3a"/>
+  <text x="94" y="252" font-size="14" font-weight="700" fill="#ececec">ASP.NET Core 10 · Minimal API</text>
+  <text x="966" y="252" font-size="11" fill="#777" text-anchor="end">(Program.cs)</text>
+  <text x="94" y="274" font-size="12" fill="#b0b0b0">装配管道 Pipeline：</text>
+  <!-- pipeline mini-boxes -->
+  <g font-size="10.5" fill="#cfcfcf">
+    <rect x="94"  y="284" width="214" height="16" rx="3" fill="#232323" stroke="#2f2f2f"/>
+    <text x="101" y="296">UseDefaultFiles + UseStaticFiles</text>
+    <rect x="316" y="284" width="186" height="16" rx="3" fill="#232323" stroke="#2f2f2f"/>
+    <text x="323" y="296">UseExceptionHandler → 500</text>
+    <rect x="510" y="284" width="186" height="16" rx="3" fill="#232323" stroke="#2f2f2f"/>
+    <text x="517" y="296">(Dev) MapOpenApi + Scalar</text>
+    <rect x="704" y="284" width="176" height="16" rx="3" fill="#232323" stroke="#2f2f2f"/>
+    <text x="711" y="296">MapProductEndpoints</text>
+  </g>
+
+  <!-- arrow 2 -->
+  <line x1="530" y1="316" x2="530" y2="340" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- ============ LAYER 3 : ENDPOINTS ============ -->
+  <rect x="40" y="342" width="980" height="92" rx="6" fill="#141414"/>
+  <text x="52" y="362" font-size="11" font-weight="700" fill="#6b6b6b" letter-spacing="1.5">03 · ENDPOINTS  端点</text>
+  <rect x="80" y="374" width="900" height="50" rx="5" fill="#1c1c1c" stroke="#3a3a3a"/>
+  <text x="94" y="394" font-size="14" font-weight="700" fill="#ececec">ProductEndpoints  ·  /api/products</text>
+  <text x="94" y="414" font-size="12" fill="#b0b0b0">GET /   ·   GET /{id:long}   ·   POST /   ·   PUT /{id:long}   ·   DELETE /{id:long}</text>
+  <text x="966" y="414" font-size="11" fill="#fbbf24" text-anchor="end">DataAnnotations → 400</text>
+
+  <!-- arrow 3 -->
+  <line x1="530" y1="434" x2="530" y2="458" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- ============ LAYER 4 : SERVICE ============ -->
+  <rect x="40" y="460" width="980" height="86" rx="6" fill="#141414"/>
+  <text x="52" y="480" font-size="11" font-weight="700" fill="#6b6b6b" letter-spacing="1.5">04 · SERVICE  业务服务</text>
+  <rect x="80" y="492" width="900" height="46" rx="5" fill="#1c1c1c" stroke="#3a3a3a"/>
+  <text x="94" y="512" font-size="14" font-weight="700" fill="#ececec">ProductService</text>
+  <text x="212" y="512" font-size="11" fill="#777">(Scoped · 纯 ADO.NET · 非 Dapper)</text>
+  <text x="94" y="530" font-size="11" fill="#888">不使用 Dapper（Nelknet 要求参数名带 @ 前缀，与 Dapper 去前缀行为不兼容）</text>
+  <text x="966" y="512" font-size="11" fill="#38bdf8" text-anchor="end">SemaphoreSlim 序列化 · 事务 + 跟随 SELECT 释放写锁</text>
+
+  <!-- arrow 4 -->
+  <line x1="530" y1="546" x2="550" y2="600" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="560" y="578" font-size="11" fill="#4ade80">uses · ADO.NET</text>
+
+  <!-- ============ LAYER 5 : DATA ACCESS & STORE ============ -->
+  <rect x="40" y="572" width="980" height="190" rx="6" fill="#141414"/>
+  <text x="52" y="592" font-size="11" font-weight="700" fill="#6b6b6b" letter-spacing="1.5">05 · DATA ACCESS &amp; STORE  数据访问与存储</text>
+
+  <!-- config source (left top) -->
+  <rect x="80" y="604" width="300" height="50" rx="5" fill="#211c08" stroke="#5a4a14"/>
+  <text x="94" y="624" font-size="13" font-weight="700" fill="#fbbf24">配置注入 Configuration</text>
+  <text x="94" y="643" font-size="11" fill="#c9b26a">Dev: User Secrets  ·  Prod: 环境变量</text>
+
+  <!-- options (left bottom) -->
+  <rect x="80" y="668" width="300" height="82" rx="5" fill="#1c1c1c" stroke="#3a3a3a"/>
+  <text x="94" y="690" font-size="13" font-weight="700" fill="#ececec">TursoOptions</text>
+  <text x="94" y="710" font-size="11" fill="#b0b0b0">· DataSource   (libSQL URL 或 app.db)</text>
+  <text x="94" y="728" font-size="11" fill="#b0b0b0">· AuthToken?  (仅云端)</text>
+  <text x="94" y="744" font-size="10.5" fill="#777">绑定 "Turso" 节 · appsettings 无凭据</text>
+
+  <!-- factory (center, tall) -->
+  <rect x="400" y="604" width="300" height="146" rx="5" fill="#1c1c1c" stroke="#3a3a3a"/>
+  <text x="414" y="626" font-size="13" font-weight="700" fill="#ececec">LibSqlConnectionFactory</text>
+  <text x="588" y="626" font-size="11" fill="#777" text-anchor="end">(Singleton)</text>
+  <text x="414" y="648" font-size="11" fill="#b0b0b0">· 复用单一 LibSQLConnection</text>
+  <text x="414" y="666" font-size="11" fill="#b0b0b0">· EnsureOpenAsync 幂等打开</text>
+  <text x="414" y="684" font-size="11" fill="#b0b0b0">· BuildConnectionString：</text>
+  <text x="414" y="702" font-size="11" fill="#b0b0b0">    Data Source=&lt;URL&gt;</text>
+  <text x="414" y="720" font-size="11" fill="#b0b0b0">    [+ Auth Token=&lt;TOKEN&gt;]</text>
+  <text x="414" y="740" font-size="10.5" fill="#6b6b6b">无 Token → 本地 app.db ；有 Token → 云端</text>
+
+  <!-- initializer (right top) -->
+  <rect x="720" y="604" width="260" height="50" rx="5" fill="#1c1c1c" stroke="#3a3a3a"/>
+  <text x="734" y="624" font-size="13" font-weight="700" fill="#ececec">DatabaseInitializer</text>
+  <text x="734" y="643" font-size="11" fill="#b0b0b0">启动：CREATE TABLE + 种子数据</text>
+
+  <!-- db (right bottom) -->
+  <rect x="720" y="668" width="260" height="82" rx="5" fill="#0f1f14" stroke="#2f5a3a"/>
+  <text x="734" y="690" font-size="13" font-weight="700" fill="#4ade80">libSQL / Turso</text>
+  <text x="734" y="710" font-size="11" fill="#9fd9b0">本地：app.db (libSQL 文件)</text>
+  <text x="734" y="728" font-size="11" fill="#9fd9b0">云端：libsql://...turso.io</text>
+  <text x="734" y="744" font-size="11" fill="#9fd9b0">        + Auth Token (JWT)</text>
+
+  <!-- config flow (amber) -->
+  <line x1="230" y1="654" x2="230" y2="666" stroke="#fbbf24" stroke-width="2" marker-end="url(#arrowAmber)"/>
+  <line x1="380" y1="700" x2="398" y2="700" stroke="#fbbf24" stroke-width="2" marker-end="url(#arrowAmber)"/>
+  <text x="386" y="694" font-size="10" fill="#fbbf24" text-anchor="end">reads</text>
+
+  <!-- startup flow (cyan): initializer -> factory -->
+  <line x1="720" y1="629" x2="702" y2="629" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowCyan)"/>
+  <text x="710" y="621" font-size="10" fill="#38bdf8" text-anchor="middle">startup</text>
+
+  <!-- data flow (green): factory -> db -->
+  <line x1="700" y1="700" x2="718" y2="700" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- footer note -->
+  <text x="40" y="786" font-size="10.5" fill="#666">时间戳 ISO-8601 文本存储 · 主键 INTEGER PRIMARY KEY AUTOINCREMENT (long) · 写操作事务 + 跟随 SELECT (last_insert_rowid / changes) 释放写锁</text>
+</svg>

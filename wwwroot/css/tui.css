@@ -1,0 +1,232 @@
+/* ============================================================
+   TursoDbDemo TUI — 致敬 AgomTUI 终端操作台（纯黑灰配色）
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  /* 纯黑灰配色（取自参考图） */
+  --tui-bg: #121212;
+  --tui-panel: #1E1E1E;
+  --tui-panel-2: #181818;
+  --tui-row: #1A1A1A;
+  --tui-row-hover: #2A2A2A;
+  --tui-row-sel: #333333;
+  --tui-border: #333333;
+  --tui-border-dim: #2A2A2A;
+  --tui-divider: #444444;
+  --tui-text: #FFFFFF;
+  --tui-muted: #B0B0B0;
+  --tui-dim: #808080;
+  --tui-green: #32CD32;
+  --tui-yellow: #FFD700;
+  --tui-red: #FF4500;
+  --tui-accent: #FFD700;
+  --tui-cyan: #4EC9B0;
+  --tui-overlay: rgba(0, 0, 0, .8);
+  --tui-command: #0A0A0A;
+
+  --tui-menubar-h: 26px;
+  --tui-system-h: 26px;
+  --tui-footer-h: 28px;
+
+  --tui-font: Consolas, Monaco, "Courier New", "Microsoft YaHei UI", monospace;
+  --tui-mono: Consolas, Monaco, "Courier New", monospace;
+}
+
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--tui-bg); color: var(--tui-text);
+  font-family: var(--tui-font); font-size: 12px; line-height: 1.4;
+  overflow: hidden;
+}
+
+/* ---------- 整体 4 段 grid ---------- */
+.tui-app {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: var(--tui-menubar-h) var(--tui-system-h) 1fr var(--tui-footer-h);
+}
+
+/* ---------- 菜单栏 ---------- */
+.tui-menubar {
+  display: flex; align-items: center; gap: 18px; padding: 0 12px;
+  background: #0E0E0E; border-bottom: 1px solid var(--tui-border);
+}
+.tui-menu { display: flex; gap: 16px; }
+.tui-menu-item { color: var(--tui-text); cursor: default; }
+.tui-menu-item:hover { color: var(--tui-accent); }
+.tui-key { color: var(--tui-dim); }
+.tui-clock { margin-left: auto; color: var(--tui-text); }
+
+/* ---------- 系统状态条 ---------- */
+.tui-system-strip {
+  display: flex; align-items: center; gap: 18px; padding: 0 12px;
+  background: var(--tui-panel-2); border-bottom: 1px solid var(--tui-border);
+  color: var(--tui-muted); font-size: 11px;
+}
+.tui-sys-left, .tui-sys-mid { display: flex; gap: 18px; }
+.tui-sys-right { margin-left: auto; display: flex; gap: 18px; }
+.tui-system-strip b { color: var(--tui-text); }
+[data-conn] { color: var(--tui-green); }
+[data-screen] { color: var(--tui-cyan); }
+[data-refreshed] { color: var(--tui-dim); }
+
+/* ---------- 主区 ---------- */
+.tui-shell { display: grid; grid-template-columns: 210px 1fr; min-height: 0; overflow: hidden; }
+
+/* 左导航 */
+.tui-rail {
+  border-right: 1px solid var(--tui-border); background: var(--tui-panel-2);
+  display: flex; flex-direction: column; min-height: 0; overflow: auto;
+}
+.tui-rail-group { padding: 8px 0; border-bottom: 1px solid var(--tui-border-dim); }
+.tui-rail-title { padding: 4px 12px; color: var(--tui-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.tui-rail-item {
+  width: 100%; display: flex; gap: 8px; align-items: center; text-align: left;
+  border: 0; background: transparent; color: var(--tui-text);
+  font: inherit; padding: 5px 12px; cursor: pointer; border-left: 2px solid transparent;
+}
+.tui-rail-item .tui-num { color: var(--tui-accent); width: 12px; font-weight: bold; }
+.tui-rail-item:hover { background: var(--tui-row-hover); }
+.tui-rail-item.is-active { background: var(--tui-row-sel); border-left-color: var(--tui-accent); }
+.tui-rail-foot { margin-top: auto; padding: 8px 12px; color: var(--tui-dim); font-size: 10px; border-top: 1px solid var(--tui-border-dim); }
+
+/* 主内容 */
+.tui-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.tui-main-scroll { flex: 1; min-height: 0; overflow: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+
+/* 工具栏 */
+.tui-toolbar {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  background: var(--tui-panel); border: 1px solid var(--tui-border); flex: none;
+}
+.tui-toolbar-title { font-weight: bold; color: var(--tui-text); }
+.tui-toolbar-actions { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* 面板 */
+.tui-panel { background: var(--tui-panel); border: 1px solid var(--tui-border); display: flex; flex-direction: column; min-height: 0; }
+.tui-flex-grow { flex: 1; min-height: 220px; }
+.tui-panel-title {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; background: #252525; color: var(--tui-text);
+  font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;
+  border-bottom: 1px solid var(--tui-border); flex: none;
+}
+.tui-panel-count { margin-left: auto; color: var(--tui-muted); font-weight: normal; font-size: 10px; }
+.tui-panel-body { padding: 10px; }
+
+/* 快照面板行 */
+.tui-snapshots { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; flex: none; }
+
+/* KPI */
+.tui-kpi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tui-kpi-item { text-align: center; padding: 8px 6px; border: 1px dashed var(--tui-divider); }
+.tui-kpi-val { font-size: 22px; font-weight: bold; color: var(--tui-accent); font-family: var(--tui-mono); }
+.tui-kpi-label { color: var(--tui-muted); font-size: 10px; text-transform: uppercase; margin-top: 4px; letter-spacing: 1px; }
+
+/* 状态列表 */
+.tui-status-list { display: flex; flex-direction: column; gap: 8px; }
+.tui-status-row { display: flex; align-items: center; gap: 8px; color: var(--tui-text); }
+.tui-status-row > span:nth-child(2) { color: var(--tui-muted); }
+.tui-status-row b { margin-left: auto; color: var(--tui-text); font-family: var(--tui-mono); }
+.tui-dot { width: 9px; height: 9px; display: inline-block; }
+.tui-dot.tui-green { background: var(--tui-green); }
+.tui-dot.tui-yellow { background: var(--tui-yellow); }
+.tui-dot.tui-red { background: var(--tui-red); }
+
+/* 数据表 */
+.tui-table-wrap { overflow: auto; padding: 0; flex: 1; }
+.tui-datagrid { width: 100%; border-collapse: collapse; }
+.tui-datagrid thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: #2A2A2A; color: var(--tui-text); text-align: left;
+  font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 10px;
+  padding: 6px 10px; border-bottom: 1px solid var(--tui-divider); white-space: nowrap;
+}
+.tui-datagrid tbody td { padding: 5px 10px; border-bottom: 1px solid var(--tui-border-dim); white-space: nowrap; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.tui-datagrid tbody tr { cursor: pointer; background: var(--tui-row); }
+.tui-datagrid tbody tr:hover td { background: var(--tui-row-hover); }
+.tui-datagrid tbody tr.is-selected td { background: var(--tui-row-sel); box-shadow: inset 2px 0 0 var(--tui-accent); }
+.tui-datagrid tbody tr.is-selected td:first-child { color: var(--tui-accent); }
+.tui-align-right { text-align: right; }
+.tui-empty { color: var(--tui-muted); padding: 30px 10px; text-align: center; }
+
+/* 文本着色（库存分级等） */
+.tui-text-green { color: var(--tui-green); }
+.tui-text-yellow { color: var(--tui-yellow); }
+.tui-text-red { color: var(--tui-red); }
+
+/* ---------- 功能键栏 ---------- */
+.tui-function-bar {
+  display: flex; align-items: center; gap: 14px; padding: 0 12px; flex-wrap: wrap;
+  background: #0E0E0E; border-top: 1px solid var(--tui-border);
+  color: var(--tui-muted); font-size: 11px;
+}
+.tui-function-bar .tui-key { color: var(--tui-accent); font-weight: bold; }
+.tui-copy { margin-left: auto; color: var(--tui-dim); }
+
+/* ---------- 输入 / 按钮 ---------- */
+.tui-input, .tui-textarea {
+  width: 100%; background: var(--tui-command); color: var(--tui-text);
+  border: 1px solid var(--tui-border); font: inherit; font-size: 12px; padding: 5px 8px;
+}
+.tui-input:focus, .tui-textarea:focus { outline: 1px solid var(--tui-accent); outline-offset: -1px; border-color: var(--tui-accent); }
+.tui-textarea { resize: vertical; min-height: 60px; }
+.tui-btn {
+  background: var(--tui-panel-2); color: var(--tui-text); border: 1px solid var(--tui-border);
+  font: inherit; font-size: 11px; padding: 3px 8px; cursor: pointer; white-space: nowrap;
+}
+.tui-btn:hover { border-color: var(--tui-accent); color: var(--tui-accent); }
+.tui-btn.tui-risk:hover { border-color: var(--tui-red); color: var(--tui-red); }
+.tui-btn-primary { background: var(--tui-accent); color: #000; border-color: var(--tui-accent); font-weight: bold; }
+.tui-btn-primary:hover { background: #FFF; color: #000; border-color: #FFF; }
+.tui-btn-danger { background: var(--tui-red); color: #FFF; border-color: var(--tui-red); font-weight: bold; }
+
+/* ---------- 筛选条 ---------- */
+.tui-filter-strip {
+  position: fixed; left: 16px; right: 16px; bottom: calc(var(--tui-footer-h) + 10px); z-index: 40;
+  display: flex; align-items: center; gap: 8px; padding: 8px;
+  background: var(--tui-panel); border: 1px solid var(--tui-accent);
+}
+.tui-filter-label { color: var(--tui-accent); font-weight: bold; }
+
+/* ---------- raw 抽屉 ---------- */
+.tui-raw-drawer {
+  position: fixed; right: 14px; bottom: calc(var(--tui-footer-h) + 14px); z-index: 50;
+  width: min(560px, 90vw); height: min(480px, 65vh); display: flex; flex-direction: column;
+  background: var(--tui-command); border: 1px solid var(--tui-border);
+}
+.tui-raw-titlebar { display: flex; align-items: center; background: #252525; color: var(--tui-text); font-weight: bold; text-transform: uppercase; font-size: 11px; padding: 0 8px; height: 24px; border-bottom: 1px solid var(--tui-border); }
+.tui-raw-close { margin-left: auto; background: transparent; border: 0; color: var(--tui-text); font: inherit; cursor: pointer; }
+.tui-raw-body { flex: 1; overflow: auto; margin: 0; padding: 8px; color: var(--tui-green); font-family: var(--tui-mono); font-size: 11px; white-space: pre-wrap; word-break: break-all; }
+
+/* ---------- Modal ---------- */
+.tui-modal { position: fixed; inset: 0; z-index: 60; background: var(--tui-overlay); display: flex; align-items: center; justify-content: center; }
+.tui-modal-window { width: min(600px, 92vw); max-height: 88vh; display: flex; flex-direction: column; background: var(--tui-panel); border: 1px solid var(--tui-border); }
+.tui-modal-titlebar { display: flex; align-items: center; background: #252525; color: var(--tui-text); font-weight: bold; text-transform: uppercase; font-size: 11px; padding: 0 10px; height: 26px; border-bottom: 1px solid var(--tui-border); }
+.tui-modal-titlebar button { margin-left: auto; background: transparent; border: 0; color: var(--tui-text); font: inherit; cursor: pointer; }
+.tui-modal-body { padding: 14px; overflow: auto; }
+
+/* 表单 */
+.tui-form-fields { display: grid; gap: 10px; }
+.tui-field label { display: block; color: var(--tui-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+.tui-field label .tui-req { color: var(--tui-red); }
+.tui-field-error { color: var(--tui-red); font-size: 10px; margin-top: 2px; min-height: 12px; }
+.tui-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--tui-divider); }
+.tui-confirm-msg { padding: 10px; background: var(--tui-red); color: #FFF; border: 1px solid var(--tui-red); margin-bottom: 12px; font-weight: bold; }
+
+/* 详情 dl */
+.tui-detail-grid { display: grid; grid-template-columns: 120px 1fr; gap: 0; margin: 0; }
+.tui-detail-grid dt { background: #252525; color: var(--tui-accent); padding: 5px 8px; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid var(--tui-bg); }
+.tui-detail-grid dd { margin: 0; padding: 5px 8px; border: 1px solid var(--tui-border-dim); word-break: break-word; white-space: pre-wrap; }
+
+/* ---------- 复古滚动条 ---------- */
+* { scrollbar-width: 14px; scrollbar-color: var(--tui-divider) var(--tui-panel-2); }
+::-webkit-scrollbar { width: 14px; height: 14px; }
+::-webkit-scrollbar-track { background: var(--tui-panel-2); }
+::-webkit-scrollbar-thumb { background: var(--tui-divider); border: 2px solid var(--tui-panel-2); }
+::-webkit-scrollbar-thumb:hover { background: var(--tui-accent); }
+::-webkit-scrollbar-button:single-button { display: block; height: 14px; background: var(--tui-panel); }
+
+[hidden] { display: none !important; }

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TursoDbDemo TUI — 商品操作台</title>
+<link rel="stylesheet" href="/css/tui.css">
+</head>
+<body>
+<div class="tui-app">
+
+  <!-- 顶部菜单栏 -->
+  <header class="tui-menubar">
+    <nav class="tui-menu">
+      <span class="tui-menu-item">文件<span class="tui-key">(F)</span></span>
+      <span class="tui-menu-item">系统<span class="tui-key">(S)</span></span>
+      <span class="tui-menu-item">视图<span class="tui-key">(V)</span></span>
+      <span class="tui-menu-item">数据<span class="tui-key">(D)</span></span>
+      <span class="tui-menu-item">工具<span class="tui-key">(T)</span></span>
+      <span class="tui-menu-item">帮助<span class="tui-key">(H)</span></span>
+    </nav>
+    <div class="tui-clock" data-clock>----/--/-- --:--:--</div>
+  </header>
+
+  <!-- 状态信息条 -->
+  <div class="tui-system-strip">
+    <div class="tui-sys-left">
+      <span>TUI: <b data-conn>ONLINE</b></span>
+      <span>MODE: <b>OPERATE ONLY</b></span>
+      <span>USER: <b>operator</b></span>
+    </div>
+    <div class="tui-sys-mid">
+      <span>位置: <b data-screen>products</b></span>
+      <span>元数据: <b>已发布</b></span>
+      <span>STYLE: <b>B</b></span>
+    </div>
+    <div class="tui-sys-right">
+      <span data-status>就绪</span>
+      <span data-refreshed>未刷新</span>
+    </div>
+  </div>
+
+  <!-- 主区：左导航 + 主内容 -->
+  <main class="tui-shell">
+    <aside class="tui-rail">
+      <div class="tui-rail-group">
+        <div class="tui-rail-title">控制中心 / CONTROL CENTER</div>
+        <button class="tui-rail-item" data-nav="overview"><span class="tui-num">1</span><span>概览 OVERVIEW</span></button>
+      </div>
+      <div class="tui-rail-group">
+        <div class="tui-rail-title">运营 / OPERATIONS</div>
+        <button class="tui-rail-item is-active" data-nav="products"><span class="tui-num">2</span><span>商品列表 PRODUCTS</span></button>
+        <button class="tui-rail-item" data-nav="raw"><span class="tui-num">3</span><span>原始数据 RAW</span></button>
+      </div>
+      <div class="tui-rail-foot">libSQL · Turso Cloud</div>
+    </aside>
+
+    <section class="tui-main">
+      <!-- 工具栏 -->
+      <div class="tui-toolbar">
+        <span class="tui-toolbar-title" data-main-title>商品列表 / PRODUCTS</span>
+        <div class="tui-toolbar-actions">
+          <button class="tui-btn" data-act="refresh">[ 刷新 ]</button>
+          <button class="tui-btn" data-act="create">[ 新建 ]</button>
+          <button class="tui-btn" data-act="detail">[ 详情 ]</button>
+          <button class="tui-btn" data-act="edit">[ 编辑 ]</button>
+          <button class="tui-btn tui-risk" data-act="delete">[ 删除 ]</button>
+          <button class="tui-btn" data-act="filter">[ 筛选 ]</button>
+          <button class="tui-btn" data-act="raw">[ 原始 ]</button>
+        </div>
+      </div>
+
+      <div class="tui-main-scroll">
+        <!-- 快照面板行 -->
+        <div class="tui-snapshots">
+          <div class="tui-panel">
+            <div class="tui-panel-title">商品概览 / INVENTORY SNAPSHOT</div>
+            <div class="tui-panel-body tui-kpi">
+              <div class="tui-kpi-item"><div class="tui-kpi-val" data-kpi-count>0</div><div class="tui-kpi-label">商品总数 TOTAL</div></div>
+              <div class="tui-kpi-item"><div class="tui-kpi-val" data-kpi-stock>0</div><div class="tui-kpi-label">总库存 STOCK</div></div>
+              <div class="tui-kpi-item"><div class="tui-kpi-val" data-kpi-value>¥0</div><div class="tui-kpi-label">总价值 VALUE</div></div>
+            </div>
+          </div>
+          <div class="tui-panel">
+            <div class="tui-panel-title">库存状态 / STOCK STATUS</div>
+            <div class="tui-panel-body tui-status-list">
+              <div class="tui-status-row"><span class="tui-dot tui-green"></span><span>充足 ≥50</span><b data-kpi-ok>0</b></div>
+              <div class="tui-status-row"><span class="tui-dot tui-yellow"></span><span>偏低 10–49</span><b data-kpi-mid>0</b></div>
+              <div class="tui-status-row"><span class="tui-dot tui-red"></span><span>紧急 &lt;10</span><b data-kpi-low>0</b></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 主数据表 -->
+        <div class="tui-panel tui-flex-grow">
+          <div class="tui-panel-title">商品清单 / PRODUCT LIST <span class="tui-panel-count" data-pager>0 行</span></div>
+          <div class="tui-panel-body tui-table-wrap">
+            <table class="tui-datagrid">
+              <thead><tr data-grid-head></tr></thead>
+              <tbody data-grid-body></tbody>
+            </table>
+            <div class="tui-empty" data-empty hidden>暂无数据</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部功能键栏 -->
+  <footer class="tui-function-bar">
+    <span><span class="tui-key">F1</span> 帮助</span>
+    <span><span class="tui-key">F2</span> 模块</span>
+    <span><span class="tui-key">F5</span> 刷新</span>
+    <span><span class="tui-key">F7</span> 筛选</span>
+    <span><span class="tui-key">F9</span> 任务</span>
+    <span><span class="tui-key">N</span> 新建</span>
+    <span><span class="tui-key">E</span> 编辑</span>
+    <span><span class="tui-key">Del</span> 删除</span>
+    <span><span class="tui-key">Enter</span> 详情</span>
+    <span><span class="tui-key">Esc</span> 返回</span>
+    <span class="tui-copy">© AgomTUI Frontend Framework · TursoDbDemo</span>
+  </footer>
+</div>
+
+<!-- 筛选条 -->
+<div class="tui-filter-strip" data-filter hidden>
+  <span class="tui-filter-label">筛选:</span>
+  <input class="tui-input" data-filter-input placeholder="按名称 / 描述关键字，回车应用">
+  <button class="tui-btn" data-filter-apply>应用</button>
+  <button class="tui-btn" data-filter-clear>清除</button>
+</div>
+
+<!-- 原始响应抽屉 -->
+<aside class="tui-raw-drawer" data-raw hidden>
+  <div class="tui-raw-titlebar">
+    <span>原始响应 / RAW RESPONSE</span>
+    <button class="tui-raw-close" data-raw-close>[ 关闭 ]</button>
+  </div>
+  <pre class="tui-raw-body" data-raw-body>-- 暂无 --</pre>
+</aside>
+
+<!-- Modal -->
+<div class="tui-modal" data-modal hidden>
+  <div class="tui-modal-window">
+    <div class="tui-modal-titlebar"><span data-modal-title>操作</span><button data-modal-close>[ 关闭 ]</button></div>
+    <div class="tui-modal-body" data-modal-body></div>
+  </div>
+</div>
+
+<script src="/js/metadata.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

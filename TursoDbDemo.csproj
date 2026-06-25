@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>6e9b8f10-8742-40e3-aa6d-bf47ec34a769</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Nelknet.LibSQL.Data" Version="0.2.9" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.5" />
+  </ItemGroup>
+
+</Project>

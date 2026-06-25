@@ -1,0 +1,35 @@
+# 敏感配置（appsettings.json 现含 Turso Auth Token，禁止提交）
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+
+# 本地 libSQL / SQLite 数据库文件
+*.db
+*.db-shm
+*.db-wal
+
+# 构建产物
+bin/
+obj/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+# Claude（本地指令与配置，禁止推送）
+CLAUDE.md
+.claude/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# User Secrets（默认位于 %APPDATA%，此处双保险）
+secrets.json
+
+# 临时 / 备份文件
+*.tmp
+*.bak
