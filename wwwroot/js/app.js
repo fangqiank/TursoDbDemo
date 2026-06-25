@@ -130,7 +130,10 @@
   }
   function showFormErrors(formEl, errors) {
     formEl.querySelectorAll('[data-err]').forEach(e => (e.textContent = ''));
-    Object.entries(errors).forEach(([k, v]) => { const e = formEl.querySelector(`[data-err="${k}"]`); if (e) e.textContent = v; });
+    Object.entries(errors).forEach(([k, v]) => {
+      const e = formEl.querySelector(`[data-err="${k.toLowerCase()}"]`);
+      if (e) e.textContent = Array.isArray(v) ? v.join('; ') : String(v);
+    });
     const fe = formEl.querySelector('.tui-field-error:not(:empty)');
     if (fe) fe.closest('.tui-field').querySelector('input,textarea')?.focus();
   }
@@ -139,10 +142,10 @@
     $('[data-form]').addEventListener('submit', async (e) => {
       e.preventDefault();
       const { data, errors } = readForm(e.target);
-      if (Object.keys(errors).length) { showFormErrors(e.target, errors); return; }
-      await onSubmit(data);
-    });
-  }
+     if (Object.keys(errors).length) { showFormErrors(e.target, errors); return; }
+      await onSubmit(data, e.target);
+   });
+ }
 
   /* ---------- 详情 modal ---------- */
   function openDetail() {
@@ -165,18 +168,28 @@
   function closeModal() { $('[data-modal]').hidden = true; }
 
   /* ---------- CRUD ---------- */
-  async function doCreate(data) {
+  async function doCreate(data, form) {
+    if (form === void 0) form = null;
     const res = await fetch(M.apiBase, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      if (body && body.errors && form) { showFormErrors(form, body.errors); return; }
+    }
     if (!res.ok) { setStatus('创建失败: HTTP ' + res.status, 'error'); return; }
     const created = await res.json().catch(() => null);
     closeModal(); await load();
     if (created) selectRow(created[M.primaryKey]);
     setStatus('已创建', 'ok');
   }
-  async function doEdit(data) {
+  async function doEdit(data, form) {
+    if (form === void 0) form = null;
     if (!state.selected) return;
     const id = state.selected[M.primaryKey];
     const res = await fetch(`${M.apiBase}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      if (body && body.errors && form) { showFormErrors(form, body.errors); return; }
+    }
     if (!res.ok) { setStatus('更新失败: HTTP ' + res.status, 'error'); return; }
     closeModal(); await load(); selectRow(id); setStatus('已更新', 'ok');
   }

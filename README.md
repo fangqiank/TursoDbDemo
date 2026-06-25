@@ -25,9 +25,10 @@ A .NET 10 Minimal API sample for Product CRUD backed by Turso / libSQL, with a t
 | 入口 Entry | `Program.cs` | DI 注册、中间件管道、启动初始化、端点映射、全局异常处理 |
 | 实体 Models | `Models/Product.cs`、`Models/ProductDtos.cs` | `Product` 实体 + 创建/更新 DTO（DataAnnotations 校验） |
 | 配置 Options | `Data/TursoOptions.cs` | 绑定 `Turso` 节：`DataSource` + `AuthToken` 分离 |
-| 连接工厂 Factory | `Data/LibSqlConnectionFactory.cs` | Singleton，复用单一 `LibSQLConnection`，按 DataSource + (AuthToken?) 拼接连接字符串 |
-| 初始化 Init | `Data/DatabaseInitializer.cs` | 启动建表 + 首次种子数据 |
-| 业务服务 Service | `Services/ProductService.cs` | Scoped，ADO.NET 实现 CRUD（信号量序列化 + 事务） |
+| 连接工厂 Factory | `Data/LibSqlConnectionFactory.cs` | Singleton，复用单一 `LibSQLConnection`；暴露 `SerializationGate` 信号量序列化单连接访问；按 DataSource + (AuthToken?) 拼接连接字符串 |
+| 初始化 Init | `Data/DatabaseInitializer.cs` | 启动建表 + 首次种子数据；自动从旧 `price` 列迁移到 `price_cents` |
+| 参数扩展 Helper | `Data/DbCommandExtensions.cs` | `AddParam` 链式扩展方法，统一带 `@` 前缀参数添加（Service / Initializer 共用，DRY） |
+| 业务服务 Service | `Services/ProductService.cs` | Scoped，纯 ADO.NET 实现 CRUD；经 `SerializationGate` 序列化 + 事务；价格元↔分换算 |
 | 端点 Endpoints | `Endpoints/ProductEndpoints.cs` | `/api/products` 路由组的 Minimal API 端点 |
 | 前端 Frontend | `wwwroot/index.html`、`wwwroot/css/tui.css`、`wwwroot/js/*.js` | TUI 仪表盘，同源 `fetch('/api/products')` |
 
@@ -42,9 +43,9 @@ ASP.NET Core 10 Minimal API (Program.cs)
    ▼
 ProductEndpoints   /api/products   (DataAnnotations 校验 → 400)
    ▼
-ProductService (Scoped · 纯 ADO.NET · SemaphoreSlim 序列化)
+ProductService (Scoped · 纯 ADO.NET · 经 SerializationGate 序列化)
    ▼
-LibSqlConnectionFactory (Singleton · 复用单连接)  ◄── TursoOptions (DataSource + AuthToken)
+LibSqlConnectionFactory (Singleton · 复用单连接 · SerializationGate)  ◄── TursoOptions (DataSource + AuthToken)
    ▼                                                              ▲
 libSQL / Turso                                            配置注入：Dev=User Secrets / Prod=环境变量
    · 本地 app.db   · 云端 libsql://...turso.io (+Auth Token)
@@ -166,6 +167,8 @@ curl -X DELETE http://localhost:5236/api/products/1
 ## 技术说明 Notes
 
 - 时间戳以 **ISO-8601 文本**存储（libSQL/SQLite 无原生 DATETIME 类型）。
+- 价格以 **整数分 `price_cents`（INTEGER）** 存储，API 层做元↔分换算（`price * 100` 入库、`/ 100m` 出库），避免浮点精度损失。
+- 首次启动若检测到旧版 `price` 列，自动迁移：`ADD COLUMN price_cents` → `UPDATE … ROUND(price*100)` → `DROP COLUMN price`。
 - 主键 `id` 为 `INTEGER PRIMARY KEY AUTOINCREMENT`，对应 C# 的 `long`。
 - INSERT 后用同一连接的 `last_insert_rowid()` 取自增主键；UPDATE/DELETE 用 `changes()` 取受影响行数。
 
@@ -173,7 +176,7 @@ curl -X DELETE http://localhost:5236/api/products/1
 
 详见 `Services/ProductService.cs` 与 `Data/LibSqlConnectionFactory.cs` 的注释：
 
-1. **参数名必须带前缀**：`LibSQLParameter.ParameterName` 须以 `@` / `:` / `$` / `?` 开头，故所有 SQL 参数名显式带 `@`，且无法使用 Dapper。
+1. **参数名必须带前缀**：`LibSQLParameter.ParameterName` 须以 `@` / `:` / `$` / `?` 开头，故所有 SQL 参数名显式带 `@`，且无法使用 Dapper；统一通过 `DbCommandExtensions.AddParam` 链式添加。
 2. **写操作后需重置 statement**：`ExecuteNonQueryAsync` 执行写语句后 statement 仍持写锁，直接提交会报 `database is locked`。规避方式：每条写语句后紧跟一条 `SELECT`（`last_insert_rowid()` / `changes()`）再提交事务。
 3. **复用单一连接**：本地文件模式下每次 `Open()` 都会打开独立的文件句柄，多句柄交错写会触发 SQLite 文件锁。本项目在 `LibSqlConnectionFactory` 全局复用一个连接，并用信号量序列化访问（单连接非线程安全）。
 

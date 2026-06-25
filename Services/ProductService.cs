@@ -1,6 +1,5 @@
 using System.Data.Common;
 using System.Globalization;
-using Microsoft.Extensions.Logging;
 using TursoDbDemo.Data;
 using TursoDbDemo.Models;
 
@@ -20,15 +19,15 @@ namespace TursoDbDemo.Services;
 public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<ProductService> logger)
     : IProductService
 {
-    private const string SelectColumns = "id, name, description, price, stock, created_at, updated_at";
+    private const string SelectColumns = "id, name, description, price_cents, stock, created_at, updated_at";
 
     /// <summary>序列化对单例连接的访问。</summary>
-    private static readonly SemaphoreSlim DbGate = new(1, 1);
+    
 
     /// <inheritdoc />
     public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        await DbGate.WaitAsync(cancellationToken);
+        await connectionFactory.SerializationGate.WaitAsync(cancellationToken);
         try
         {
             var connection = connectionFactory.Create();
@@ -47,14 +46,14 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
         }
         finally
         {
-            DbGate.Release();
+            connectionFactory.SerializationGate.Release();
         }
     }
 
     /// <inheritdoc />
     public async Task<Product?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        await DbGate.WaitAsync(cancellationToken);
+        await connectionFactory.SerializationGate.WaitAsync(cancellationToken);
         try
         {
             var connection = connectionFactory.Create();
@@ -62,21 +61,21 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
 
             await using var command = connection.CreateCommand();
             command.CommandText = $"SELECT {SelectColumns} FROM products WHERE id = @Id;";
-            AddParameter(command, "@Id", id);
+            command.AddParam("@Id", id);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             return await reader.ReadAsync(cancellationToken) ? Map(reader) : null;
         }
         finally
         {
-            DbGate.Release();
+            connectionFactory.SerializationGate.Release();
         }
     }
 
     /// <inheritdoc />
     public async Task<Product> CreateAsync(CreateProductDto dto, CancellationToken cancellationToken = default)
     {
-        await DbGate.WaitAsync(cancellationToken);
+        await connectionFactory.SerializationGate.WaitAsync(cancellationToken);
         try
         {
             var now = DateTime.UtcNow.ToString("O");
@@ -89,15 +88,15 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
             {
                 command.Transaction = transaction;
                 command.CommandText = """
-                    INSERT INTO products (name, description, price, stock, created_at, updated_at)
+                    INSERT INTO products (name, description, price_cents, stock, created_at, updated_at)
                     VALUES (@Name, @Description, @Price, @Stock, @CreatedAt, @UpdatedAt);
                     """;
-                AddParameter(command, "@Name", dto.Name);
-                AddParameter(command, "@Description", dto.Description);
-                AddParameter(command, "@Price", dto.Price);
-                AddParameter(command, "@Stock", dto.Stock);
-                AddParameter(command, "@CreatedAt", now);
-                AddParameter(command, "@UpdatedAt", now);
+                command.AddParam("@Name", dto.Name);
+                command.AddParam("@Description", dto.Description);
+                command.AddParam("@Price", (long)(dto.Price * 100m));
+                command.AddParam("@Stock", dto.Stock);
+                command.AddParam("@CreatedAt", now);
+                command.AddParam("@UpdatedAt", now);
                 await command.ExecuteNonQueryAsync(cancellationToken);
 
                 // 跟随 SELECT 取自增主键，同时重置 statement 释放写锁
@@ -114,14 +113,14 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
         }
         finally
         {
-            DbGate.Release();
+            connectionFactory.SerializationGate.Release();
         }
     }
 
     /// <inheritdoc />
     public async Task<Product?> UpdateAsync(long id, UpdateProductDto dto, CancellationToken cancellationToken = default)
     {
-        await DbGate.WaitAsync(cancellationToken);
+        await connectionFactory.SerializationGate.WaitAsync(cancellationToken);
         try
         {
             var now = DateTime.UtcNow.ToString("O");
@@ -137,17 +136,17 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
                     UPDATE products
                     SET name = @Name,
                         description = @Description,
-                        price = @Price,
+                        price_cents = @Price,
                         stock = @Stock,
                         updated_at = @UpdatedAt
                     WHERE id = @Id;
                     """;
-                AddParameter(command, "@Id", id);
-                AddParameter(command, "@Name", dto.Name);
-                AddParameter(command, "@Description", dto.Description);
-                AddParameter(command, "@Price", dto.Price);
-                AddParameter(command, "@Stock", dto.Stock);
-                AddParameter(command, "@UpdatedAt", now);
+                command.AddParam("@Id", id);
+                command.AddParam("@Name", dto.Name);
+                command.AddParam("@Description", dto.Description);
+                command.AddParam("@Price", (long)(dto.Price * 100m));
+                command.AddParam("@Stock", dto.Stock);
+                command.AddParam("@UpdatedAt", now);
                 await command.ExecuteNonQueryAsync(cancellationToken);
 
                 command.Parameters.Clear();
@@ -167,14 +166,14 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
         }
         finally
         {
-            DbGate.Release();
+            connectionFactory.SerializationGate.Release();
         }
     }
 
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
-        await DbGate.WaitAsync(cancellationToken);
+        await connectionFactory.SerializationGate.WaitAsync(cancellationToken);
         try
         {
             var connection = connectionFactory.Create();
@@ -186,7 +185,7 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
             {
                 command.Transaction = transaction;
                 command.CommandText = "DELETE FROM products WHERE id = @Id;";
-                AddParameter(command, "@Id", id);
+                command.AddParam("@Id", id);
                 await command.ExecuteNonQueryAsync(cancellationToken);
 
                 command.Parameters.Clear();
@@ -204,7 +203,7 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
         }
         finally
         {
-            DbGate.Release();
+            connectionFactory.SerializationGate.Release();
         }
     }
 
@@ -216,19 +215,10 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
 
         await using var command = connection.CreateCommand();
         command.CommandText = $"SELECT {SelectColumns} FROM products WHERE id = @Id;";
-        AddParameter(command, "@Id", id);
+        command.AddParam("@Id", id);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         return await reader.ReadAsync(cancellationToken) ? Map(reader) : null;
-    }
-
-    /// <summary>添加带 <c>@</c> 前缀的参数（Nelknet 要求参数名带前缀）。</summary>
-    private static void AddParameter(DbCommand command, string name, object? value)
-    {
-        var parameter = command.CreateParameter();
-        parameter.ParameterName = name;
-        parameter.Value = value ?? DBNull.Value;
-        command.Parameters.Add(parameter);
     }
 
     /// <summary>将一行映射到 <see cref="Product"/>。时间戳以 ISO-8601 文本读取后解析。</summary>
@@ -237,9 +227,10 @@ public class ProductService(ILibSqlConnectionFactory connectionFactory, ILogger<
         Id = reader.GetInt64(0),
         Name = reader.GetString(1),
         Description = reader.IsDBNull(2) ? null : reader.GetString(2),
-        Price = Convert.ToDecimal(reader[3], CultureInfo.InvariantCulture),
+        Price = reader.GetInt64(3) / 100m,
         Stock = reader.GetInt32(4),
         CreatedAt = DateTime.Parse(reader.GetString(5), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
         UpdatedAt = DateTime.Parse(reader.GetString(6), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
     };
 }
+

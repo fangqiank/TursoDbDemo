@@ -51,7 +51,7 @@ public static class ProductEndpoints
     private static async Task<Results<Created<Product>, ValidationProblem>> Create(
         CreateProductDto dto, IProductService service, CancellationToken ct)
     {
-        if (TryValidate(dto, out var errors))
+        if (HasValidationErrors(dto, out var errors))
         {
             return TypedResults.ValidationProblem(errors);
         }
@@ -63,7 +63,7 @@ public static class ProductEndpoints
     private static async Task<Results<Ok<Product>, NotFound, ValidationProblem>> Update(
         long id, UpdateProductDto dto, IProductService service, CancellationToken ct)
     {
-        if (TryValidate(dto, out var errors))
+        if (HasValidationErrors(dto, out var errors))
         {
             return TypedResults.ValidationProblem(errors);
         }
@@ -79,8 +79,8 @@ public static class ProductEndpoints
         return deleted ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 
-    /// <summary>基于 DataAnnotations 校验 DTO。返回 true 表示校验失败（并填充 errors）。</summary>
-    private static bool TryValidate(object dto, out IDictionary<string, string[]> errors)
+    /// <summary>基于 DataAnnotations 校验 DTO。返回 true 表示存在校验错误（errors 包含字段级错误信息）。</summary>
+    private static bool HasValidationErrors(object dto, out IDictionary<string, string[]> errors)
     {
         var context = new ValidationContext(dto);
         var results = new List<ValidationResult>();

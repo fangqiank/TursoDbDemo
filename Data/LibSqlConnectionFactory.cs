@@ -5,6 +5,9 @@ namespace TursoDbDemo.Data;
 /// <summary>libSQL 连接工厂。</summary>
 public interface ILibSqlConnectionFactory
 {
+    /// <summary>用于序列化单连接访问的信号量。所有复用该连接的消费者应先 WaitAsync 再 Release。</summary>
+    SemaphoreSlim SerializationGate { get; }
+
     /// <summary>获取共享的 <see cref="LibSQLConnection"/>（已由 <see cref="EnsureOpenAsync"/> 打开）。</summary>
     LibSQLConnection Create();
 
@@ -20,10 +23,15 @@ public interface ILibSqlConnectionFactory
 /// 本地文件模式（无 AuthToken）→ <c>Data Source=app.db</c>；
 /// 云端模式（有 AuthToken）→ <c>Data Source=libsql://...;Auth Token=...</c>。
 /// <para>Nelknet 本地文件模式下，每次 <c>Open()</c> 都会打开独立文件句柄，多句柄交错访问同一文件会触发 SQLite 的 <c>database is locked</c>，故复用单连接。</para>
-/// <para>单连接非线程安全，多请求并发需序列化访问（见 <see cref="Services.ProductService"/> 内的信号量）。</para>
+/// <para>单连接非线程安全，多请求并发需通过 <see cref="SerializationGate"/> 序列化访问。</para>
 /// </remarks>
 public class LibSqlConnectionFactory(TursoOptions options) : ILibSqlConnectionFactory
 {
+    /// <summary>全局序列化信号量，确保单连接在多消费者间串行访问。</summary>
+    private static SemaphoreSlim SerializationGate { get; } = new(1, 1);
+
+    SemaphoreSlim ILibSqlConnectionFactory.SerializationGate => SerializationGate;
+
     private readonly LibSQLConnection _connection = new(BuildConnectionString(options));
     private readonly SemaphoreSlim _openGate = new(1, 1);
     private bool _isOpen;
